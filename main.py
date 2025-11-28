@@ -107,8 +107,21 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
     colors_range: range = range(len(BASE_COLORS))
     opacities_range: range = range(len(BASE_OPACITIES))
 
-    total_combinations: float = 0
+    # Find optimal step counts to check to get all possibilities
+    # (all numbers from 1 to n, skipping numbers that are factors of larger ones)
+    step_counts: list[int] = []
     for step_count in range(1, n + 1):
+        should_check: bool = True
+        for potential_multiple in range(step_count + 1, n + 1):
+            if (potential_multiple % step_count) == 0:
+                should_check = False
+                break
+        if should_check:
+            step_counts.append(step_count)
+
+    # Prepare progress bar
+    total_combinations: float = 0
+    for step_count in step_counts:
         partial_combinations: float = (len(BASE_COLORS) * len(BASE_OPACITIES)) ** (step_count - 1)
         partial_combinations *= len(BASE_COLORS)
         total_combinations += partial_combinations
@@ -143,7 +156,7 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
         solution: Solution = Solution(steps)
         constructible_colors.add(rgb_to_decimal(solution.test()))
 
-    for step_count in range(1, n + 1):
+    for step_count in step_counts:
         for_every_solution(step_count, add_result_to_constructible_colors)
     progress_bar.close()
 
