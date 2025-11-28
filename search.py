@@ -28,8 +28,12 @@ class SearchNode:
         return f'SearchNode(rgb={self.rgb}, top_layer={self.top_layer})'
 
     def __str__(self) -> str:
-        result: str = f'({common.BASE_OPACITIES[self.top_layer[1]]:.0%}'
-        result += f' {common.rgb_to_hex(common.BASE_COLORS[self.top_layer[0]])})'
+        result: str = ''
+        if self.top_layer is None:
+            result += '(START)'
+        else:
+            result += f'({common.BASE_OPACITIES[self.top_layer[1]]:.0%}'
+            result += f' {common.rgb_to_hex(common.BASE_COLORS[self.top_layer[0]])})'
         if self.rgb is None:
             result += '->AMBIGUOUS'
         else:
@@ -121,4 +125,5 @@ def format_solver_result(solver_result: list[SearchNode] | None, target_rgb: tup
     return f'PASS | Target: {common.rgb_to_hex(target_rgb)} | {len(solver_result)} {word_layers}: {formatted_nodes}'
 
 if __name__ == '__main__':
-    ...
+    target_rgb: tuple[int, int, int] = (243, 17, 63)
+    print(format_solver_result(solve(target_rgb), target_rgb))
