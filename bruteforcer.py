@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Callable, Any
 from tqdm import tqdm # pip install tqdm
-from constants import *
 import platform
+import common
 
 PY_IMPLEMENTATION: str = platform.python_implementation()
 
@@ -19,8 +19,8 @@ class Solution:
         A list of steps to contruct a target color.
 
         :param steps: A list of steps. Each step should be a tuple with the first item an
-        integer to index into the BASE_COLORS array, and the second item an integer to index
-        into the BASE_OPACITIES array.
+        integer to index into the common.BASE_COLORS array, and the second item an integer to index
+        into the common.BASE_OPACITIES array.
         :type steps: list[tuple[int, int]]
         :param target: An optional target color.
         :type target: tuple[int, int, int]
@@ -40,11 +40,11 @@ class Solution:
         # Steps
         stringified_steps_list: list[str] = []
         for step in self.steps:
-            opacity: float = BASE_OPACITIES[step[1]]
+            opacity: float = common.BASE_OPACITIES[step[1]]
             if opacity == 0:
                 stringified_steps_list.append('(0%)')
                 continue
-            stringified_color: str = rgb_to_hex(BASE_COLORS[step[0]])
+            stringified_color: str = rgb_to_hex(common.BASE_COLORS[step[0]])
             stringified_opacity: str = f'{opacity:.0%}'
             stringified_steps_list.append(f'({stringified_opacity} {stringified_color})')
         stringified_steps: str = f'Steps ({len(self.steps)}): ' + (' '.join(stringified_steps_list))
@@ -76,34 +76,22 @@ class Solution:
         last_opaque_step: int | None = None
         for i in range(len(self.steps)):
             step: tuple[int, int] = self.steps[i]
-            if BASE_OPACITIES[step[1]] == 1:
+            if common.BASE_OPACITIES[step[1]] == 1:
                 last_opaque_step = i
         if last_opaque_step is None:
             raise ValueError('At least one solution step must have 100% opacity to prevent ambiguity regarding the background color')
 
         # Start from the last opaque step and simulate overlaying the colors
-        result: tuple[int, int, int] = BASE_COLORS[self.steps[last_opaque_step][0]]
+        result: tuple[int, int, int] = common.BASE_COLORS[self.steps[last_opaque_step][0]]
         for step in self.steps[last_opaque_step+1:]:
-            color: tuple[int, int, int] = BASE_COLORS[step[0]]
-            opacity: float = BASE_OPACITIES[step[1]]
-            # PowerPoint appears to round color channels to the nearest integer at every step using banker's rounding (?).
-            # TODO: Figure out why these examples in PowerPoint cause weird results in the web version:
-            # - 50% opacity #fefefe on top of 100% opacity #ffffff; expected: #fefefe, actual: #fefefe (checks out)
-            # - 50% opacity #ffffff on top of 100% opacity #fefefe; expected: #fefefe, actual: #ffffff (what the f-string)
-            # - 1% opacity #d4d4d4 (stacked a whole bunch) on top of 100% opacity #ffffff; expected: something close to #d4d4d4, actual: #dcdcdc (checks out)
-            # - 1% opacity #d5d5d5 (stacked a whole bunch) on top of 100% opacity #ffffff; expected: something close to #d5d5d5, actual: #ffffff (????)
-            result = (
-                round(result[0] + opacity * (color[0] - result[0])),
-                round(result[1] + opacity * (color[1] - result[1])),
-                round(result[2] + opacity * (color[2] - result[2])),
-            )
+            result = common.apply_layer(result, step)
 
         return result
 
 def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
     constructible_colors: set[int] = set()
-    colors_range: range = range(len(BASE_COLORS))
-    opacities_range: range = range(len(BASE_OPACITIES))
+    colors_range: range = range(len(common.BASE_COLORS))
+    opacities_range: range = range(len(common.BASE_OPACITIES))
 
     # Find optimal step counts to check to get all possibilities
     # (all numbers from 1 to n, skipping numbers that are factors of larger ones)
@@ -120,8 +108,8 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
     # Prepare progress bar and constructible colors bar
     total_combinations: float = 0
     for step_count in step_counts:
-        partial_combinations: float = (len(BASE_COLORS) * len(BASE_OPACITIES)) ** (step_count - 1)
-        partial_combinations *= len(BASE_COLORS)
+        partial_combinations: float = (len(common.BASE_COLORS) * len(common.BASE_OPACITIES)) ** (step_count - 1)
+        partial_combinations *= len(common.BASE_COLORS)
         total_combinations += partial_combinations
     total_combinations: int = int(total_combinations)
     progress_bar: tqdm = tqdm(desc='Progress     ', total=total_combinations, ascii=(PY_IMPLEMENTATION == 'PyPy'))
@@ -140,7 +128,7 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
         if step_count == 1:
             for color in colors_range:
                 new_steps: list[tuple[int, int]] = steps.copy()
-                new_steps.append((color, FULLY_OPAQUE_INDEX))
+                new_steps.append((color, common.FULLY_OPAQUE_INDEX))
                 for_every_solution(step_count - 1, function, new_steps)
         else:
             for color in colors_range:
