@@ -4,12 +4,16 @@ from __future__ import annotations
 # https://www.empowersuite.com/hs-fs/hubfs/Marketing/Blog/Snips/custom-color-palette-powerpoint-master3.png?width=477&name=custom-color-palette-powerpoint-master3.png
 BASE_COLORS: list[tuple[int, int, int]] = [(0, 51, 102), (51, 102, 153), (51, 102, 204), (0, 51, 153), (0, 0, 153), (0, 0, 204), (0, 0, 102), (0, 102, 102), (0, 102, 153), (0, 153, 204), (0, 102, 204), (0, 51, 204), (0, 0, 255), (51, 51, 255), (51, 51, 153), (0, 128, 128), (0, 153, 153), (51, 204, 204), (0, 204, 255), (0, 153, 255), (0, 102, 255), (51, 102, 255), (51, 51, 204), (102, 102, 153), (51, 153, 102), (0, 204, 153), (0, 255, 204), (0, 255, 255), (51, 204, 255), (51, 153, 255), (102, 153, 255), (102, 102, 255), (102, 0, 255), (102, 0, 204), (51, 153, 51), (0, 204, 102), (0, 255, 153), (102, 255, 204), (102, 255, 255), (102, 204, 255), (153, 204, 255), (153, 153, 255), (153, 102, 255), (153, 51, 255), (153, 0, 255), (0, 102, 0), (0, 204, 0), (0, 255, 0), (102, 255, 153), (153, 255, 204), (204, 255, 255), (204, 236, 255), (204, 204, 255), (204, 153, 255), (204, 102, 255), (204, 0, 255), (153, 0, 204), (0, 51, 0), (0, 128, 0), (51, 204, 51), (102, 255, 102), (153, 255, 153), (204, 255, 204), (255, 255, 255), (255, 204, 255), (255, 153, 255), (255, 102, 255), (255, 0, 255), (204, 0, 204), (102, 0, 102), (51, 102, 0), (0, 153, 0), (102, 255, 51), (153, 255, 102), (204, 255, 153), (255, 255, 204), (255, 204, 204), (255, 153, 204), (255, 102, 204), (255, 51, 204), (204, 0, 153), (128, 0, 128), (51, 51, 0), (102, 153, 0), (153, 255, 51), (204, 255, 102), (255, 255, 153), (255, 204, 153), (255, 153, 153), (255, 102, 153), (255, 51, 153), (204, 51, 153), (153, 0, 153), (102, 102, 51), (153, 204, 0), (204, 255, 51), (255, 255, 102), (255, 204, 102), (255, 153, 102), (255, 124, 128), (255, 0, 102), (214, 0, 147), (153, 51, 102), (128, 128, 0), (204, 204, 0), (255, 255, 0), (255, 204, 0), (255, 153, 51), (255, 102, 0), (255, 80, 80), (204, 0, 102), (102, 0, 51), (153, 102, 51), (204, 153, 0), (255, 153, 0), (204, 102, 0), (255, 51, 0), (255, 0, 0), (204, 0, 0), (153, 0, 51), (102, 51, 0), (153, 102, 0), (204, 51, 0), (153, 51, 0), (153, 0, 0), (128, 0, 0), (165, 0, 33), (7, 7, 8), (16, 16, 16), (28, 28, 28), (41, 41, 41), (51, 51, 51), (77, 77, 77), (95, 95, 95), (119, 119, 119), (128, 128, 128), (150, 150, 150), (178, 178, 178), (192, 192, 192), (221, 221, 221), (234, 234, 234), (248, 248, 248)]
 BASE_OPACITIES: list[float] = [0.05, 0.2, 0.35, 0.5, 0.7, 0.85, 1]
+FULLY_OPAQUE_INDEX: int = 6
 
 def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
     return f'#{hex(rgb[0])[2:]}{hex(rgb[1])[2:]}{hex(rgb[2])[2:]}'
 
+def rgb_to_decimal(rgb: tuple[int, int, int]) -> int:
+    return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
+
 class Solution:
-    def __init__(self, target: tuple[int, int, int], steps: list[tuple[int, int]]):
+    def __init__(self, steps: list[tuple[int, int]], target: tuple[int, int, int] | None = None):
         """
         A list of steps to contruct a target color.
 
@@ -17,8 +21,10 @@ class Solution:
         integer to index into the BASE_COLORS array, and the second item an integer to index
         into the BASE_OPACITIES array.
         :type steps: list[tuple[int, int]]
+        :param target: An optional target color.
+        :type target: tuple[int, int, int]
         """
-        self.target: tuple[int, int, int] = target
+        self.target: tuple[int, int, int] | None = target
         self.steps: list[tuple[int, int]] = steps
 
     def __repr__(self):
@@ -26,7 +32,9 @@ class Solution:
 
     def __str__(self):
         # Target color
-        stringified_target: str = f'Target: {rgb_to_hex(self.target)}'
+        stringified_target: str = 'Target: NONE'
+        if self.target is not None:
+            stringified_target = f'Target: {rgb_to_hex(self.target)}'
 
         # Steps
         stringified_steps_list: list[str] = []
@@ -77,6 +85,12 @@ class Solution:
         for step in self.steps[last_opaque_step+1:]:
             color: tuple[int, int, int] = BASE_COLORS[step[0]]
             opacity: float = BASE_OPACITIES[step[1]]
+            # PowerPoint appears to round color channels to the nearest integer at every step using banker's rounding (?).
+            # TODO: Figure out why these examples in PowerPoint cause weird results in the web version:
+            # - 50% opacity #fefefe on top of 100% opacity #ffffff; expected: #fefefe, actual: #fefefe (checks out)
+            # - 50% opacity #ffffff on top of 100% opacity #fefefe; expected: #fefefe, actual: #ffffff (what the f-string)
+            # - 1% opacity #d4d4d4 (stacked a whole bunch) on top of 100% opacity #ffffff; expected: something close to #d4d4d4, actual: #dcdcdc (checks out)
+            # - 1% opacity #d5d5d5 (stacked a whole bunch) on top of 100% opacity #ffffff; expected: something close to #d5d5d5, actual: #ffffff (????)
             result = (
                 round(result[0] + opacity * (color[0] - result[0])),
                 round(result[1] + opacity * (color[1] - result[1])),
@@ -85,4 +99,17 @@ class Solution:
 
         return result
 
+def get_constructible_colors_from_2_steps() -> set[int]:
+    constructible_colors: set[int] = set()
+    for color1 in range(len(BASE_COLORS)):
+        for opacity in range(len(BASE_OPACITIES)):
+            for color2 in range(len(BASE_COLORS)):
+                solution = Solution([(color1, FULLY_OPAQUE_INDEX), (color2, opacity)])
+                constructible_colors.add(rgb_to_decimal(solution.test()))
+    return constructible_colors
 
+if __name__ == '__main__':
+    print('Getting constructible colors...')
+    constructible_colors: set[int] = get_constructible_colors_from_2_steps()
+    print(f'{len(constructible_colors)} / {1 << 24} colors constructible.')
+    print(f'{(1 << 24) - len(constructible_colors)} / {1 << 24} colors unconstructible.')
