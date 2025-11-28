@@ -110,7 +110,9 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
         if steps is None:
             steps = []
         if step_count < 1:
-            function(steps)
+            reversed_steps: list[tuple[int, int]] = steps.copy()
+            reversed_steps.reverse()
+            function(reversed_steps)
             return
         if step_count == 1:
             for color in colors_range:
