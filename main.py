@@ -109,17 +109,18 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
 
     total_combinations: float = 0
     for step_count in range(1, n + 1):
-        partial_combinations = (len(BASE_COLORS) * len(BASE_OPACITIES)) ** (step_count - 1)
+        partial_combinations: float = (len(BASE_COLORS) * len(BASE_OPACITIES)) ** (step_count - 1)
         partial_combinations *= len(BASE_COLORS)
         total_combinations += partial_combinations
     total_combinations: int = int(total_combinations)
     progress_bar: tqdm = tqdm(total=total_combinations)
 
-    def for_every_solution(step_count: int, function: Callable[[list[tuple[int, int]]], Any], steps: list[tuple[int, int]] | None = None, progress: int = 0) -> None:
-        progress_bar.update(progress)
+    def for_every_solution(step_count: int, function: Callable[[list[tuple[int, int]]], Any], steps: list[tuple[int, int]] | None = None) -> None:
         if steps is None:
             steps = []
         if step_count < 1:
+            progress_bar.update(1)
+
             reversed_steps: list[tuple[int, int]] = steps.copy()
             reversed_steps.reverse()
             function(reversed_steps)
@@ -128,13 +129,13 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
             for color in colors_range:
                 new_steps: list[tuple[int, int]] = steps.copy()
                 new_steps.append((color, FULLY_OPAQUE_INDEX))
-                for_every_solution(step_count - 1, function, new_steps, progress + 1)
+                for_every_solution(step_count - 1, function, new_steps)
         else:
             for color in colors_range:
                 for opacity in opacities_range:
                     new_steps: list[tuple[int, int]] = steps.copy()
                     new_steps.append((color, opacity))
-                    for_every_solution(step_count - 1, function, new_steps, progress + 1)
+                    for_every_solution(step_count - 1, function, new_steps)
 
     def add_result_to_constructible_colors(steps: list[tuple[int, int]]) -> None:
         nonlocal constructible_colors
@@ -151,5 +152,5 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
 if __name__ == '__main__':
     print('Getting constructible colors...')
     constructible_colors: set[int] = get_constructible_colors_from_n_steps(3)
-    print(f'{len(constructible_colors)} / {1 << 24} colors constructible.')
-    print(f'{(1 << 24) - len(constructible_colors)} / {1 << 24} colors unconstructible.')
+    print(f'{len(constructible_colors)} / {1 << 24} ({len(constructible_colors) / (1 << 24):.3%}) colors constructible.')
+    print(f'{(1 << 24) - len(constructible_colors)} / {1 << 24} ({1 - (len(constructible_colors) / (1 << 24)):.3%}) colors unconstructible.')
