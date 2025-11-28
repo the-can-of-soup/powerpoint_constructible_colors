@@ -12,7 +12,7 @@ FULLY_OPAQUE_INDEX: int = BASE_OPACITIES.index(1)
 
 
 def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
-    return f'#{hex(rgb[0])[2:]}{hex(rgb[1])[2:]}{hex(rgb[2])[2:]}'
+    return f'#{hex(rgb[0])[2:]:02}{hex(rgb[1])[2:]:02}{hex(rgb[2])[2:]:02}'
 
 def rgb_to_decimal(rgb: tuple[int, int, int]) -> int:
     return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
