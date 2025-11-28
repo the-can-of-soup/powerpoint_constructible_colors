@@ -1,17 +1,11 @@
 from __future__ import annotations
 
 from typing import Callable, Any
-from tqdm import tqdm # pip install tqdm
+from tqdm import tqdm
 import platform
 import common
 
 PY_IMPLEMENTATION: str = platform.python_implementation()
-
-def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
-    return f'#{hex(rgb[0])[2:]}{hex(rgb[1])[2:]}{hex(rgb[2])[2:]}'
-
-def rgb_to_decimal(rgb: tuple[int, int, int]) -> int:
-    return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
 
 class Solution:
     def __init__(self, steps: list[tuple[int, int]], target: tuple[int, int, int] | None = None):
@@ -35,7 +29,7 @@ class Solution:
         # Target color
         stringified_target: str = 'Target: NONE'
         if self.target is not None:
-            stringified_target = f'Target: {rgb_to_hex(self.target)}'
+            stringified_target = f'Target: {common.rgb_to_hex(self.target)}'
 
         # Steps
         stringified_steps_list: list[str] = []
@@ -44,7 +38,7 @@ class Solution:
             if opacity == 0:
                 stringified_steps_list.append('(0%)')
                 continue
-            stringified_color: str = rgb_to_hex(common.BASE_COLORS[step[0]])
+            stringified_color: str = common.rgb_to_hex(common.BASE_COLORS[step[0]])
             stringified_opacity: str = f'{opacity:.0%}'
             stringified_steps_list.append(f'({stringified_opacity} {stringified_color})')
         stringified_steps: str = f'Steps ({len(self.steps)}): ' + (' '.join(stringified_steps_list))
@@ -57,7 +51,7 @@ class Solution:
         except ValueError:
             status = 'ERROR'
         else:
-            stringified_result = f'Result: {rgb_to_hex(result)}'
+            stringified_result = f'Result: {common.rgb_to_hex(result)}'
             if result == self.target:
                 status = 'PASS '
             else:
@@ -90,8 +84,6 @@ class Solution:
 
 def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
     constructible_colors: set[int] = set()
-    colors_range: range = range(len(common.BASE_COLORS))
-    opacities_range: range = range(len(common.BASE_OPACITIES))
 
     # Find optimal step counts to check to get all possibilities
     # (all numbers from 1 to n, skipping numbers that are factors of larger ones)
@@ -126,13 +118,13 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
             function(reversed_steps)
             return
         if step_count == 1:
-            for color in colors_range:
+            for color in common.COLOR_INDEXES:
                 new_steps: list[tuple[int, int]] = steps.copy()
                 new_steps.append((color, common.FULLY_OPAQUE_INDEX))
                 for_every_solution(step_count - 1, function, new_steps)
         else:
-            for color in colors_range:
-                for opacity in opacities_range:
+            for color in common.COLOR_INDEXES:
+                for opacity in common.OPACITY_INDEXES:
                     new_steps: list[tuple[int, int]] = steps.copy()
                     new_steps.append((color, opacity))
                     for_every_solution(step_count - 1, function, new_steps)
@@ -142,7 +134,7 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
 
         solution: Solution = Solution(steps)
         initial_length: int = len(constructible_colors)
-        constructible_colors.add(rgb_to_decimal(solution.test()))
+        constructible_colors.add(common.rgb_to_decimal(solution.test()))
         final_length: int = len(constructible_colors)
         if final_length > initial_length: # Color was added and therefore wasn't in set before
             constructible_bar.update(1)
