@@ -120,9 +120,10 @@ def format_solver_result(solver_result: list[SearchNode] | None, target_rgb: tup
     if solver_result is None:
         return f'FAIL | Target: {common.rgb_to_hex(target_rgb)}'
 
-    formatted_nodes: str = ', '.join([str(node) for node in solver_result])
+    steps: list[SearchNode] = solver_result[1:]
+    formatted_steps: str = ', '.join([str(node) for node in steps])
     word_layers: str = 'layer' if len(solver_result) == 1 else 'layers'
-    return f'PASS | Target: {common.rgb_to_hex(target_rgb)} | {len(solver_result)} {word_layers}: {formatted_nodes}'
+    return f'PASS | Target: {common.rgb_to_hex(target_rgb)} | {len(solver_result)} {word_layers}: {formatted_steps}'
 
 if __name__ == '__main__':
     target_rgb: tuple[int, int, int] = (243, 17, 63)
