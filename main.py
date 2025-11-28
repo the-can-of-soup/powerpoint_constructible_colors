@@ -119,14 +119,15 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
         if should_check:
             step_counts.append(step_count)
 
-    # Prepare progress bar
+    # Prepare progress bar and constructible colors bar
     total_combinations: float = 0
     for step_count in step_counts:
         partial_combinations: float = (len(BASE_COLORS) * len(BASE_OPACITIES)) ** (step_count - 1)
         partial_combinations *= len(BASE_COLORS)
         total_combinations += partial_combinations
     total_combinations: int = int(total_combinations)
-    progress_bar: tqdm = tqdm(total=total_combinations)
+    progress_bar: tqdm = tqdm(desc='Progress     ', total=total_combinations)
+    constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24))
 
     def for_every_solution(step_count: int, function: Callable[[list[tuple[int, int]]], Any], steps: list[tuple[int, int]] | None = None) -> None:
         if steps is None:
@@ -154,11 +155,16 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
         nonlocal constructible_colors
 
         solution: Solution = Solution(steps)
+        initial_length: int = len(constructible_colors)
         constructible_colors.add(rgb_to_decimal(solution.test()))
+        final_length: int = len(constructible_colors)
+        if final_length > initial_length: # Color was added and therefore wasn't in set before
+            constructible_bar.update(1)
 
     for step_count in step_counts:
         for_every_solution(step_count, add_result_to_constructible_colors)
     progress_bar.close()
+    constructible_bar.close()
 
     return constructible_colors
 
