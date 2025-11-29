@@ -6,13 +6,24 @@ import search
 import common
 
 BRUTE_FORCE_DEPTH: int = 3
+RANDOM_SEARCH_DEPTH: int = 5
+RANDOM_SEARCH_CUTOFF_TIME: float = 5.0
 
 if __name__ == '__main__':
     constructible_count: int = 0
 
     print(f'Brute forcing every combination of up to {BRUTE_FORCE_DEPTH} layers...')
-    bruteforce_result: set[int] = bruteforcer.get_constructible_colors_from_n_steps(BRUTE_FORCE_DEPTH)
-    constructible_count += len(bruteforce_result)
+    constructible_colors: set[int] = bruteforcer.get_constructible_colors_from_n_steps(BRUTE_FORCE_DEPTH)
+    constructible_count += len(constructible_colors)
+
+    print('')
+    print(f'Randomly checking combinations of {RANDOM_SEARCH_DEPTH} layers...')
+    constructible_colors = bruteforcer.randomized_search_with_n_layers(
+        n=RANDOM_SEARCH_DEPTH,
+        cutoff_time=RANDOM_SEARCH_CUTOFF_TIME,
+        known_constructible_colors=constructible_colors,
+    )
+    constructible_count = len(constructible_colors)
 
     print('')
     print('Searching remaining colors...')
@@ -26,7 +37,7 @@ if __name__ == '__main__':
     for r in range(256):
         for g in range(256):
             for b in range(256):
-                if (r, g, b) in bruteforce_result:
+                if (r, g, b) in constructible_colors:
                     continue
                 solver_result: list[search.SearchNode] | None = search.solve((r, g, b))
                 progress_bar.update(1)

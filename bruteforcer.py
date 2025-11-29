@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Callable, Any
 from tqdm import tqdm
 import common
+import random
+import time
 
 class Solution:
     def __init__(self, steps: list[tuple[int, int]], target: tuple[int, int, int] | None = None):
@@ -80,6 +82,14 @@ class Solution:
         return result
 
 def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
+    """
+    Bruteforces every combination of up to n layers to find constructible colors.
+
+    :param n: The number of layers.
+    :type n: int
+    :return: A set of the constructible colors that were found in decimal form.
+    :rtype: set[int]
+    """
     constructible_colors: set[int] = set()
 
     # Find optimal step counts to check to get all possibilities
@@ -142,6 +152,54 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
     constructible_bar.close()
 
     return constructible_colors
+
+def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_constructible_colors: set[int] | None = None) -> set[int]:
+    """
+    Randomly searches for constructible colors by checking combinations of n layers.
+
+    :param n: The number of layers.
+    :type n: int
+    :param cutoff_time: When this many seconds pass before finding the next unique constructible
+    color, the search will end.
+    :type cutoff_time: float
+    :param known_constructible_colors: Optional set of already known constructible colors in decimal
+    form.
+    :type known_constructible_colors: set[int]
+    :return: A set of the constructible colors that were found in decimal form (including the colors
+    from ``known_constructible_colors`` if provided).
+    :rtype: set[int]
+    """
+    constructible_colors: set[int] = set()
+    if known_constructible_colors is not None:
+        constructible_colors = known_constructible_colors
+    constructible_count: int = len(constructible_colors)
+
+    constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
+    constructible_bar.update(constructible_count)
+
+    time_of_last_new_color: float = time.time()
+
+    while True:
+        now: float = time.time()
+
+        test_layers: list[tuple[int, int]] = []
+        if n > 0:
+            test_layers.append((random.randint(0, len(common.BASE_COLORS) - 1), common.FULLY_OPAQUE_INDEX))
+        for _ in range(n - 1):
+            test_layers.append((random.randint(0, len(common.BASE_COLORS) - 1), random.randint(0, len(common.BASE_OPACITIES) - 1)))
+
+        solution: Solution = Solution(test_layers)
+        constructible_colors.add(common.rgb_to_decimal(solution.test()))
+
+        new_constructible_count: int = len(constructible_colors)
+        if new_constructible_count > constructible_count:
+            constructible_bar.update(1)
+            constructible_count = new_constructible_count
+            time_of_last_new_color = now
+
+        if now - time_of_last_new_color >= cutoff_time:
+            constructible_bar.close()
+            return constructible_colors
 
 if __name__ == '__main__':
     print('Getting constructible colors...')
