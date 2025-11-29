@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Any
 from tqdm import tqdm
-import platform
 import common
-
-PY_IMPLEMENTATION: str = platform.python_implementation()
 
 class Solution:
     def __init__(self, steps: list[tuple[int, int]], target: tuple[int, int, int] | None = None):
@@ -104,8 +101,8 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
         partial_combinations *= len(common.BASE_COLORS)
         total_combinations += partial_combinations
     total_combinations: int = int(total_combinations)
-    progress_bar: tqdm = tqdm(desc='Progress     ', total=total_combinations, ascii=(PY_IMPLEMENTATION == 'PyPy'))
-    constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(PY_IMPLEMENTATION == 'PyPy'))
+    progress_bar: tqdm = tqdm(desc='Progress     ', total=total_combinations, ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
+    constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
 
     def for_every_solution(step_count: int, function: Callable[[list[tuple[int, int]]], Any], steps: list[tuple[int, int]] | None = None) -> None:
         if steps is None:
