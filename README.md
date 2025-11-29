@@ -3,6 +3,10 @@
 This program aims to solve a very specific problem so watch this video from 9:58 for the explanation:
 https://youtu.be/iT2pfmv3cSE?t=598
 
+## Requirements
+
+Use `pip install -r requirements.txt` to get everything you need.
+
 ## Which Colors Are Constructible?
 
 Currently, I have checked and found that over 99.5% of possible hex color codes are constructable, and not a single unconstructible color has been found so far.
