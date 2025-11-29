@@ -160,7 +160,7 @@ def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_
     :param n: The number of layers.
     :type n: int
     :param cutoff_time: When this many seconds pass before finding the next unique constructible
-    color, the search will end.
+    color three consecutive times, the search will end.
     :type cutoff_time: float
     :param known_constructible_colors: Optional set of already known constructible colors in decimal
     form.
@@ -178,6 +178,7 @@ def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_
     constructible_bar.update(constructible_count)
 
     time_of_last_new_color: float = time.time()
+    consecutive_timeouts: int = 0
 
     while True:
         now: float = time.time()
@@ -198,8 +199,14 @@ def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_
             time_of_last_new_color = now
 
         if now - time_of_last_new_color >= cutoff_time:
-            constructible_bar.close()
-            return constructible_colors
+            consecutive_timeouts += 1
+            # Only stop after three consecutive timeouts to prevent outliers and things like
+            # putting the computer to sleep from instantly stopping the search
+            if consecutive_timeouts >= 3:
+                constructible_bar.close()
+                return constructible_colors
+        else:
+            consecutive_timeouts = 0
 
 if __name__ == '__main__':
     print('Getting constructible colors...')
