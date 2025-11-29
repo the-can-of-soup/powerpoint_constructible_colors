@@ -19,7 +19,9 @@ if __name__ == '__main__':
     remaining_color_count: int = (1 << 24) - constructible_count
     progress_bar: tqdm = tqdm(desc='Progress     ', total=remaining_color_count, ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
     constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
+    unconstructible_bar: tqdm = tqdm(desc='Unconstruct. ', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
     constructible_bar.update(constructible_count)
+    unconstructible_bar.update((1 << 24) - constructible_count)
 
     for r in range(256):
         for g in range(256):
@@ -28,7 +30,9 @@ if __name__ == '__main__':
                     continue
                 solver_result: list[search.SearchNode] | None = search.solve((r, g, b))
                 progress_bar.update(1)
-                if solver_result is not None:
+                if solver_result is None:
+                    unconstructible_bar.update(1)
+                else:
                     constructible_bar.update(1)
                     constructible_count += 1
 
