@@ -127,19 +127,22 @@ def format_solver_result(solver_result: list[SearchNode] | None, target_rgb: tup
     return f'PASS | Target: {common.rgb_to_hex(target_rgb)} | {len(steps)} {word_layers}: {formatted_steps}'
 
 if __name__ == '__main__':
-    print('Getting constructible colors...')
-    progress_bar: tqdm = tqdm(desc='Progress     ', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
-    constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
+    with open(common.CONSTRUCTIBLE_COLORS_FILE_PATH, 'wb') as f:
 
-    constructible_count: int = 0
-    for r in range(256):
-        for g in range(256):
-            for b in range(256):
-                solver_result: list[SearchNode] | None = solve((r, g, b))
-                progress_bar.update(1)
-                if solver_result is not None:
-                    constructible_bar.update(1)
-                    constructible_count += 1
+        print('Getting constructible colors...')
+        progress_bar: tqdm = tqdm(desc='Progress     ', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
+        constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
+
+        constructible_count: int = 0
+        for r in range(256):
+            for g in range(256):
+                for b in range(256):
+                    solver_result: list[SearchNode] | None = solve((r, g, b))
+                    progress_bar.update(1)
+                    if solver_result is not None:
+                        constructible_bar.update(1)
+                        constructible_count += 1
+                        f.write(common.rgb_to_bytes((r, g, b)))
 
     print(f'{constructible_count} / {1 << 24} ({constructible_count / (1 << 24):.3%}) colors constructible.')
     print(f'{(1 << 24) - constructible_count} / {1 << 24} ({1 - (constructible_count / (1 << 24)):.3%}) colors unconstructible.')

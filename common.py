@@ -11,6 +11,8 @@ BASE_OPACITIES: list[float] = [0.05, 0.2, 0.35, 0.5, 0.7, 0.85, 1]
 OPACITY_INDEXES: list[int] = list(range(len(BASE_OPACITIES)))
 FULLY_OPAQUE_INDEX: int = BASE_OPACITIES.index(1)
 
+CONSTRUCTIBLE_COLORS_FILE_PATH: str = 'constructible_colors.dat'
+
 PY_IMPLEMENTATION: str = platform.python_implementation()
 
 
@@ -19,7 +21,20 @@ def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
     return f'#{hex(rgb[0])[2:]:02}{hex(rgb[1])[2:]:02}{hex(rgb[2])[2:]:02}'
 
 def rgb_to_decimal(rgb: tuple[int, int, int]) -> int:
-    return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
+    return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2]
+
+def rgb_to_bytes(rgb: tuple[int, int, int]) -> bytes:
+    return rgb[0].to_bytes() + rgb[1].to_bytes() + rgb[2].to_bytes()
+
+def decimal_to_rgb(decimal: int) -> tuple[int, int, int]:
+    return (
+        (decimal >> 16) & 255,
+        (decimal >> 8) & 255,
+        decimal & 255,
+    )
+
+def bytes_to_rgb(data: bytes) -> tuple[int, int, int]:
+    return data[0], data[1], data[2]
 
 def apply_layer(old_rgb: tuple[int, int, int] | None, layer: tuple[int, int]) -> tuple[int, int, int] | None:
     """

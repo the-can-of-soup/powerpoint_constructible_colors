@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable, Any, BinaryIO
 from tqdm import tqdm
 import common
 import random
@@ -81,12 +81,14 @@ class Solution:
 
         return result
 
-def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
+def get_constructible_colors_from_n_steps(n: int = 2, file: BinaryIO | None = None) -> set[int]:
     """
     Bruteforces every combination of up to n layers to find constructible colors.
 
     :param n: The number of layers.
     :type n: int
+    :param file: Optional file to write results to. Must be opened in ``wb`` mode.
+    :type file: BinaryIO | None
     :return: A set of the constructible colors that were found in decimal form.
     :rtype: set[int]
     """
@@ -141,10 +143,13 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
 
         solution: Solution = Solution(steps)
         initial_length: int = len(constructible_colors)
-        constructible_colors.add(common.rgb_to_decimal(solution.test()))
+        color: tuple[int, int, int] = solution.test()
+        constructible_colors.add(common.rgb_to_decimal(color))
         final_length: int = len(constructible_colors)
         if final_length > initial_length: # Color was added and therefore wasn't in set before
             constructible_bar.update(1)
+            if file is not None:
+                file.write(common.rgb_to_bytes(color))
 
     for step_count in step_counts:
         for_every_solution(step_count, add_result_to_constructible_colors)
@@ -153,7 +158,7 @@ def get_constructible_colors_from_n_steps(n: int = 2) -> set[int]:
 
     return constructible_colors
 
-def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_constructible_colors: set[int] | None = None) -> set[int]:
+def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_constructible_colors: set[int] | None = None, file: BinaryIO | None = None) -> set[int]:
     """
     Randomly searches for constructible colors by checking combinations of n layers.
 
@@ -165,6 +170,8 @@ def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_
     :param known_constructible_colors: Optional set of already known constructible colors in decimal
     form.
     :type known_constructible_colors: set[int]
+    :param file: Optional file to write results to. Must be opened in ``wb`` mode.
+    :type file: BinaryIO | None
     :return: A set of the constructible colors that were found in decimal form (including the colors
     from ``known_constructible_colors`` if provided).
     :rtype: set[int]
@@ -190,13 +197,16 @@ def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_
             test_layers.append((random.randint(0, len(common.BASE_COLORS) - 1), random.randint(0, len(common.BASE_OPACITIES) - 1)))
 
         solution: Solution = Solution(test_layers)
-        constructible_colors.add(common.rgb_to_decimal(solution.test()))
+        color: tuple[int, int, int] = solution.test()
+        constructible_colors.add(common.rgb_to_decimal(color))
 
         new_constructible_count: int = len(constructible_colors)
         if new_constructible_count > constructible_count:
             constructible_bar.update(1)
             constructible_count = new_constructible_count
             time_of_last_new_color = now
+            if file is not None:
+                file.write(common.rgb_to_bytes(color))
 
         if now - time_of_last_new_color >= cutoff_time:
             consecutive_timeouts += 1
@@ -209,7 +219,13 @@ def randomized_search_with_n_layers(n: int = 2, cutoff_time: float = 5.0, known_
             consecutive_timeouts = 0
 
 if __name__ == '__main__':
-    print('Getting constructible colors...')
-    constructible_colors: set[int] = get_constructible_colors_from_n_steps(3)
+    with open(common.CONSTRUCTIBLE_COLORS_FILE_PATH, 'wb') as f:
+
+        print('Getting constructible colors...')
+        constructible_colors: set[int] = get_constructible_colors_from_n_steps(3, file=f)
+
     print(f'{len(constructible_colors)} / {1 << 24} ({len(constructible_colors) / (1 << 24):.3%}) colors constructible.')
     print(f'{(1 << 24) - len(constructible_colors)} / {1 << 24} ({1 - (len(constructible_colors) / (1 << 24)):.3%}) colors unconstructible.')
+
+    print('')
+    input('Press ENTER to close.')

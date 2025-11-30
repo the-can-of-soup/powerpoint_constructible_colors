@@ -11,7 +11,9 @@ Use `pip install -r requirements.txt` to get everything you need.
 
 Currently, I have checked and found that over 99.67% of possible hex color codes are constructible, and not a single unconstructible color has been found so far.
 
-To run the (very bad) search algorithm, run `combined.py`. It is ***highly*** recommended to use [PyPy](https://pypy.org/) for this, as otherwise it may take eons for the program to finsh (although it probably will take eons either way).
+To run the (very bad) search algorithm, run `combined.py`. It is ***highly*** recommended to use [PyPy](https://pypy.org/) for this, as otherwise it may take eons for the program to finsh (although it probably will take eons either way). The searcher will passively consume 1-2 GiB of RAM, and the `constructible_colors.dat` file it will produce can be up to 50 MiB.
+
+While the search algorithm is running or after it stops, run `check_remaining_colors.py` to see a sample of colors that haven't been proven constructible yet.
 
 ## Usage
 
