@@ -3,9 +3,20 @@
 This program aims to solve a very specific problem so watch this video from 9:58 for the explanation:
 https://youtu.be/iT2pfmv3cSE?t=598
 
+## Rounding
+
+This project currently assumes the following layer overlay behavior:
+
+Given a bottom color `B`, a layer color `L`, and a layer opacity `α`, the formula used for the result color `C` is:
+```
+C = round(B + α * (L - B))
+```
+
+However, this is not exactly how PowerPoint performs layering from what I can tell. I do not know the formula that PowerPoint uses, so this project just uses the above formula, which is usually a very close approximation.
+
 ## Requirements
 
-Use `pip install -r requirements.txt` to get everything you need.
+Use `pip install -r requirements.txt` to get everything you need to use the program.
 
 ## Which Colors Are Constructible?
 
