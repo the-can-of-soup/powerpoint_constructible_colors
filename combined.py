@@ -7,7 +7,7 @@ import common
 
 BRUTE_FORCE_DEPTH: int = 3
 RANDOM_SEARCH_DEPTH: int = 5
-RANDOM_SEARCH_CUTOFF_TIME: float = 5.0
+RANDOM_SEARCH_CUTOFF_TIME: float = 30.0
 
 if __name__ == '__main__':
     with open(common.CONSTRUCTIBLE_COLORS_FILE_PATH, 'wb') as f:
@@ -35,7 +35,6 @@ if __name__ == '__main__':
         constructible_bar: tqdm = tqdm(desc='Constructible', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
         unconstructible_bar: tqdm = tqdm(desc='Unconstruct. ', total=(1 << 24), ascii=(common.PY_IMPLEMENTATION == 'PyPy'))
         constructible_bar.update(constructible_count)
-        unconstructible_bar.update((1 << 24) - constructible_count)
 
         for r in range(256):
             for g in range(256):
